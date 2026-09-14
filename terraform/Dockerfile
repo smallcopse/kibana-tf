@@ -12,13 +12,17 @@ RUN microdnf install -y unzip jq git ca-certificates && microdnf clean all
 
 WORKDIR /tmp
 
-# Terraformをダウンロードし、HashiCorp公式のチェックサムで検証する
-RUN curl -fsSL -o terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip" \
+# Terraformをダウンロードし、HashiCorp公式のチェックサムで検証する。
+# sha256sum -c はSHA256SUMSに書かれた元のファイル名と同名のファイルが
+# カレントディレクトリに存在することを前提にするため、-oで別名保存せず
+# 元のファイル名のままダウンロードする
+RUN terraform_zip="terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip" \
+    && curl -fsSL -O "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/${terraform_zip}" \
     && curl -fsSL -o terraform_SHA256SUMS "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" \
-    && grep "terraform_${TERRAFORM_VERSION}_linux_${TARGETARCH}.zip" terraform_SHA256SUMS | sha256sum -c - \
-    && unzip terraform.zip -d /usr/local/bin \
+    && grep "${terraform_zip}" terraform_SHA256SUMS | sha256sum -c - \
+    && unzip "${terraform_zip}" -d /usr/local/bin \
     && chmod +x /usr/local/bin/terraform \
-    && rm -f terraform.zip terraform_SHA256SUMS
+    && rm -f "${terraform_zip}" terraform_SHA256SUMS
 
 # バイナリの展開が終わったのでunzipは削除する
 RUN microdnf remove -y unzip && microdnf clean all
