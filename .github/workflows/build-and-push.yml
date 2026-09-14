@@ -1,0 +1,58 @@
+name: Build and push kibana-tf terraform image to GHCR
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  TERRAFORM_VERSION: 1.9.8
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set build date
+        id: vars
+        run: |
+          # Build date in UTC, format: YYYYMMDD-hhmm
+          echo "build_date=$(date -u +%Y%m%d-%H%M)" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./terraform
+          file: ./terraform/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/kibana-tf:${{ env.TERRAFORM_VERSION }}-${{ steps.vars.outputs.build_date }}
+            ghcr.io/${{ github.repository_owner }}/kibana-tf:latest
+          build-args: |
+            TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
