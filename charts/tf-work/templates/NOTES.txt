@@ -1,0 +1,9 @@
+tf-workのStatefulSetをデプロイしました。
+
+Podのシェルに入る:
+  kubectl exec -it {{ include "tf-work.fullname" . }}-0 -- bash
+  (OpenShiftの場合: oc rsh {{ include "tf-work.fullname" . }}-0)
+
+ローカルの内容をPodに反映する:
+  kubectl cp ./ {{ include "tf-work.fullname" . }}-0:/workspace
+  (OpenShiftの場合: oc rsync ./ {{ include "tf-work.fullname" . }}-0:/workspace --exclude=.git --exclude=.terraform)

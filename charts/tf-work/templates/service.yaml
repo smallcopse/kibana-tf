@@ -1,0 +1,12 @@
+# StatefulSetのserviceNameに指定するヘッドレスService
+# (このPodはトラフィックを受けないので、ポートは定義しない)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tf-work.fullname" . }}
+  labels:
+    {{- include "tf-work.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "tf-work.selectorLabels" . | nindent 4 }}

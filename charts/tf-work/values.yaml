@@ -1,0 +1,56 @@
+# StatefulSetのレプリカ数。作業用の単一インスタンスなので1固定を想定
+replicaCount: 1
+
+image:
+  repository: ghcr.io/smallcopse/kibana-tf
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# プライベートレジストリからpullする場合に使うimagePullSecretsの名前
+imagePullSecrets: []
+# - name: ghcr-pull-secret
+
+# terraform/DockerfileのCMDは["bash"]でTTY無しだと即終了してしまうため、
+# StatefulSetのPodを起動し続けるコマンドで上書きする
+command:
+  - sleep
+args:
+  - infinity
+
+# Kibanaへの接続情報。
+# existingSecretを指定した場合はそちらを優先し、下のendpoint/apiKey/username/password
+# は無視される(Secretは事前に自分で作成しておく: KIBANA_ENDPOINT, KIBANA_API_KEY,
+# もしくはKIBANA_USERNAME/KIBANA_PASSWORDをキーに持つこと)。
+# existingSecretを指定しない場合、endpoint/apiKey/username/passwordを1つ以上
+# 指定するとChart側でSecretを作成する。
+kibana:
+  existingSecret: ""
+  endpoint: ""
+  apiKey: ""
+  username: ""
+  password: ""
+  # trueにすると、terraform/kibanaのvar.kibana_insecureに対応する
+  # TF_VAR_kibana_insecure環境変数をtrueにする(TLS証明書の検証をスキップ)
+  insecure: false
+
+resources: {}
+# resources:
+#   requests:
+#     cpu: 100m
+#     memory: 128Mi
+#   limits:
+#     cpu: 500m
+#     memory: 512Mi
+
+# コンテナ単位のsecurityContext。OpenShiftのrestricted SCC配下では
+# 通常指定不要(SCCがランダムUIDを割り当てる)
+securityContext: {}
+
+# Pod単位のsecurityContext
+podSecurityContext: {}
+
+serviceAccountName: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

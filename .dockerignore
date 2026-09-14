@@ -1,0 +1,9 @@
+.git
+.github
+.terraform
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+generated_*.tf
