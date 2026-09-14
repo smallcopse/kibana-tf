@@ -38,10 +38,9 @@ RUN chmod +x scripts/*.sh
 
 # OpenShiftの restricted SCC で実行される前提の対応。
 # restricted SCCではDockerfileのUSERは無視され、プロジェクトごとに割り当てられた
-# 範囲からランダムなUIDでコンテナが実行される(所属グループは常に0=root)。
-# そのため、/workspace配下の所有グループをrootにし、オーナーと同じ権限を
-# グループにも与えて、任意のUIDでも読み書きできるようにしておく。
-RUN chgrp -R 0 /workspace && chmod -R g=u /workspace
+# 範囲からランダムなUIDでコンテナが実行される。どのUID・グループで実行されても
+# /workspace配下に自由にファイルを置けるよう、777(誰でも読み書き実行可)にしておく。
+RUN chmod -R 777 /workspace
 
 # 任意UIDには/etc/passwdのエントリが無く$HOMEが未設定・書き込み不可になるため、
 # 書き込み可能な/workspaceを$HOMEにする
